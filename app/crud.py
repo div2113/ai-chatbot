@@ -19,7 +19,7 @@ def get_users(db:Session):
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
-def update_user(db: Session , user_id:int , user: schemas.UserUpadte):
+def update_user(db: Session , user_id:int , user: schemas.UserUpdate):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if db_user is None:
