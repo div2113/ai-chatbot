@@ -2,7 +2,7 @@ from fastapi import FastAPI , Depends , HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import Base ,engine , get_db
-from app import models , schemas , curd
+from app import models , schemas , crud
 
 app = FastAPI()
 
@@ -16,17 +16,17 @@ def home():
 
 @app.post("/users" , response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    return curd.create_user(db=db , user=user)
+    return crud.create_user(db=db , user=user)
 
 
 @app.get("/users", response_model=list[schemas.UserResponse])
 def get_users(db: Session = Depends(get_db)):
-    return curd.get_users(db)
+    return crud.get_users(db)
 
 
 @app.get("/users/{user_id}" , response_model=schemas.UserResponse)
 def get_user(user_id:int , db: Session= Depends(get_db)):
-    user =  curd.get_user(db , user_id)
+    user =  crud.get_user(db , user_id)
 
     if user is None:
         raise  HTTPException(
@@ -43,7 +43,7 @@ def update_user(
     updated_user: schemas.UserUpadte ,
     db: Session = Depends(get_db)
 ):
-    user = curd.update_user(db , user_id , updated_user)
+    user = crud.update_user(db , user_id , updated_user)
 
     if user is None:
         raise HTTPException(
@@ -59,7 +59,7 @@ def patch_user(
     updated_user :schemas.UserPatch ,
     db: Session =Depends(get_db)
 ):
-    user = curd.patch_user(db,user_id , updated_user)
+    user = crud.patch_user(db,user_id , updated_user)
 
     if user is None:
         raise HTTPException(
@@ -74,7 +74,7 @@ def delete_user(
     user_id:int,
     db:Session = Depends(get_db)
 ):
-    user=curd.delete_user(db,user_id)
+    user=crud.delete_user(db,user_id)
 
     if user is None:
         raise HTTPException(
