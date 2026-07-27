@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 
 from app import models, schemas
-from app.auth import hash_password , verify_password
+from app.auth import hash_password , verify_password , create_access_token
 
 
 def create_user(db: Session, user: schemas.UserCreate):
@@ -74,18 +75,25 @@ def delete_user(db: Session , user_id:int):
 
     return db_user
 
-def login_user(db: Session, user: schemas.UserLogin):
-    db_user=db.query(models.User).filter(models.User.email == user.email).first()
+def login_user(db: Session, form_data: OAuth2PasswordRequestForm):
+    db_user=db.query(models.User).filter(models.User.email == form_data.username).first()
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             details="Invalid email or password"
         )
 
-    if not verify_password(user.password, db_user.password):
+    if not verify_password(form_data.password, db_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             details="Invalid email or password"
         )
 
-    return db_user
+    access_token = create_access_token(
+        data={"sub":db_user.email}
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type":"bearer"
+    }

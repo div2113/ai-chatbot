@@ -1,8 +1,13 @@
 from fastapi import APIRouter , Depends , HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app import schemas , crud
+
+from app.auth import get_current_user
+from app.models import User
 
 router = APIRouter(
     prefix = "/users",
@@ -84,7 +89,13 @@ def delete_user(
 
 @router.post("/login")
 def login(
-    user : schemas.UserLogin,
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    return crud.login_user(db, user)
+    return crud.login_user(db, form_data)
+
+@router.get("/me", response_model=schemas.UserResponse)
+def get_me(
+    current_user: User= Depends(get_current_user)
+):
+    return current_user 
