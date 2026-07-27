@@ -39,25 +39,20 @@ def update_user(db: Session , user_id:int , user: schemas.UserUpdate):
     if db_user is None:
         return None
 
-    db_user.username = user.username
-    db_user.email = user.email
+    if user.email and user.email != db_user.email:
+        existing_user = db.query(models.User).filter(models.User.email == user.email).first()
 
-    db.commit()
-    db.refresh(db_user)
+        if existing_user:
+            raise HTTPException(
+                status_code= status.HTTP_409_CONFLICT,
+                detail="Email already registered"
+            )
 
-    return db_user
+    update_data = user.model_dump(exclude_unset=True)
 
-def patch_user(db: Session , user_id : int , user: schemas.UserPatch):
-    db_user= db.query(models.User).filter(models.User.id == user_id).first()
+    for key ,value in update_data.items():
+        setattr(db_user, key , value)
 
-    if db_user is None:
-        return None
-
-    if user.username is not None:
-        db_user.username = user.username
-
-    if user.email is not None:
-        db_user.email = user.email
 
     db.commit()
     db.refresh(db_user)
@@ -80,13 +75,13 @@ def login_user(db: Session, form_data: OAuth2PasswordRequestForm):
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            details="Invalid email or password"
+            detail="Invalid email or password"
         )
 
     if not verify_password(form_data.password, db_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            details="Invalid email or password"
+            detail="Invalid email or password"
         )
 
     access_token = create_access_token(

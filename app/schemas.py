@@ -10,11 +10,12 @@ class UserCreate(UserBase):
     
 
 class UserUpdate(UserBase):
-    pass
+    username: str | None = None
+    email: EmailStr | None = None
 
-class UserPatch(BaseModel):
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
+    model_config = {
+        "from_attributes": True
+    }
 
 class UserResponse(BaseModel):
     id:int
