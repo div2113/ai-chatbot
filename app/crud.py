@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 from app import models, schemas
-from app.auth import hash_password
+from app.auth import hash_password , verify_password
 
 
 def create_user(db: Session, user: schemas.UserCreate):
@@ -71,5 +71,21 @@ def delete_user(db: Session , user_id:int):
 
     db.delete(db_user)
     db.commit()
+
+    return db_user
+
+def login_user(db: Session, user: schemas.UserLogin):
+    db_user=db.query(models.User).filter(models.User.email == user.email).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            details="Invalid email or password"
+        )
+
+    if not verify_password(user.password, db_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            details="Invalid email or password"
+        )
 
     return db_user

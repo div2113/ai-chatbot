@@ -81,3 +81,10 @@ def delete_user(
     return {
         "message": "User deleated successfully"
     }
+
+@router.post("/login")
+def login(
+    user : schemas.UserLogin,
+    db: Session = Depends(get_db)
+):
+    return crud.login_user(db, user)
