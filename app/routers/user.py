@@ -57,21 +57,21 @@ def update_current_user(
     )
 
 
-@router.put("/{user_id}", response_model=schemas.UserResponse)
-def update_user(
-    user_id:int ,
-    updated_user: schemas.UserUpdate ,
-    db: Session = Depends(get_db)
-):
-    user = crud.update_user(db , user_id , updated_user)
+# @router.put("/{user_id}", response_model=schemas.UserResponse)
+# def update_user(
+#     user_id:int ,
+#     updated_user: schemas.UserUpdate ,
+#     db: Session = Depends(get_db)
+# ):
+#     user = crud.update_user(db , user_id , updated_user)
 
-    if user is None:
-        raise HTTPException(
-            status_code = 404 ,
-            detail ="User not found"
-        )
+#     if user is None:
+#         raise HTTPException(
+#             status_code = 404 ,
+#             detail ="User not found"
+#         )
 
-    return user
+#     return user
 
 @router.delete("/{user_id}")
 def delete_user(
@@ -98,4 +98,24 @@ def login(
     return crud.login_user(db, form_data)
 
 
+@router.post("/refresh")
+def refresh_token(
+    request: schemas.RefreshtokenRequest,
+    db: Session = Depends(get_db)
+):
+    return crud.refresh_access_token(
+        db,
+        request.refresh_token
+    )
 
+@router.put("/change-password")
+def change_password(
+    passwords: schemas.ChangePassword,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.change_password(
+        db,
+        current_user,
+        passwords
+    )
