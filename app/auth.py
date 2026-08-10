@@ -33,7 +33,12 @@ def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc)+timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode.update({"exp": expire})
+    to_encode.update(
+        {
+            "exp": expire,
+            "type": "access"
+        }
+    )
 
     return jwt.encode(
         to_encode,
@@ -48,7 +53,8 @@ def create_refresh_token(data:dict):
 
     to_encode.update(
         {
-            "exp": expire
+            "exp": expire,
+            "type":"refresh"
         }
     )
 
@@ -76,7 +82,9 @@ def get_current_user(
         )
 
         email=payload.get("sub")
-        if email is None:
+        token_type=payload.get("type")
+
+        if email is None or token_type != "access":
             raise credentials_exception
 
     except JWTError:
@@ -88,7 +96,7 @@ def get_current_user(
 
     return user
 
-def verify_token(token:str):
+def verify_token(token:str , token_type:str):
     credential_exception=HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid token"
@@ -101,8 +109,9 @@ def verify_token(token:str):
             algorithms=[ALGORITHM]
         )
         email =payload.get("sub")
+        token_kind = payload.get("type")
 
-        if email is None:
+        if email is None or token_kind != token_type:
             raise credential_exception
 
         return email

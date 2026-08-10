@@ -43,7 +43,7 @@ def refresh_access_token(
         db: Session,
         refresh_token : str
 ):
-    email = verify_token(refresh_token)
+    email = verify_token(refresh_token , "refresh")
 
     db_user= db.query(models.User).filter(models.User.email == email).first()
 

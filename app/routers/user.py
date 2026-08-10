@@ -119,3 +119,11 @@ def change_password(
         current_user,
         passwords
     )
+
+@router.post("/logout")
+def logout(
+    current_user: models.User =Depends(get_current_user)
+):
+    return{
+        "message": "Logout successful"
+    }
