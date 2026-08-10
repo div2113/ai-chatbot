@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import schemas , crud , models
 
-from app.auth import get_current_user
+from app.auth import get_current_user 
 from app.models import User
 
 router = APIRouter(
@@ -14,6 +14,7 @@ router = APIRouter(
     tags=["Users"]
 )
 
+# Register user
 @router.post("/", response_model=schemas.UserResponse)
 def create_user(
     user : schemas.UserCreate,
@@ -22,28 +23,15 @@ def create_user(
     return crud.create_user(db=db , user=user)
 
 
-@router.get("/", response_model=list[schemas.UserResponse])
-def get_users(db: Session = Depends(get_db)):
-    return crud.get_users(db)
-
+# My profile
 @router.get("/me", response_model=schemas.UserResponse)
 def get_me(
     current_user: User= Depends(get_current_user)
 ):
     return current_user
 
-@router.get("/{user_id}" , response_model=schemas.UserResponse)
-def get_user(user_id:int , db: Session= Depends(get_db)):
-    user =  crud.get_user(db , user_id)
 
-    if user is None:
-        raise  HTTPException(
-            status_code=404,
-            detail = "User not found"
-        )
-
-    return user
-
+# Update my profile
 @router.put("/me", response_model = schemas.UserResponse)
 def update_current_user(
     updated_user: schemas.UserUpdate,
@@ -56,40 +44,7 @@ def update_current_user(
         updated_user
     )
 
-
-# @router.put("/{user_id}", response_model=schemas.UserResponse)
-# def update_user(
-#     user_id:int ,
-#     updated_user: schemas.UserUpdate ,
-#     db: Session = Depends(get_db)
-# ):
-#     user = crud.update_user(db , user_id , updated_user)
-
-#     if user is None:
-#         raise HTTPException(
-#             status_code = 404 ,
-#             detail ="User not found"
-#         )
-
-#     return user
-
-@router.delete("/{user_id}")
-def delete_user(
-    user_id:int,
-    db:Session = Depends(get_db)
-):
-    user=crud.delete_user(db,user_id)
-
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-
-    return {
-        "message": "User deleated successfully"
-    }
-
+# Login
 @router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -97,7 +52,7 @@ def login(
 ):
     return crud.login_user(db, form_data)
 
-
+# Refresh token
 @router.post("/refresh")
 def refresh_token(
     request: schemas.RefreshtokenRequest,
@@ -108,6 +63,7 @@ def refresh_token(
         request.refresh_token
     )
 
+# Change password
 @router.put("/change-password")
 def change_password(
     passwords: schemas.ChangePassword,
@@ -120,6 +76,7 @@ def change_password(
         passwords
     )
 
+# Logout
 @router.post("/logout")
 def logout(
     current_user: models.User =Depends(get_current_user)

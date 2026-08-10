@@ -96,6 +96,18 @@ def get_current_user(
 
     return user
 
+def get_current_admin(
+        current_user: models.User = Depends(get_current_user)
+):
+    if not current_user.is_admin:
+        if not current_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admin access required"
+            )
+
+    return current_user
+
 def verify_token(token:str , token_type:str):
     credential_exception=HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

@@ -5,9 +5,12 @@ from app.database import Base ,engine , get_db
 from app import models , schemas , crud
 
 from app.routers.user import router as user_router
+from app.routers.admin import router as admin_router
+
 
 app = FastAPI()
 app.include_router(user_router)
+app.include_router(admin_router)
 
 Base.metadata.create_all(bind=engine)
 
