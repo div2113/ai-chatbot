@@ -43,3 +43,13 @@ class ChangePassword(BaseModel):
     old_password: str
     new_password:str
 
+class ConversationCreate(BaseModel):
+    title: str | None = None
+
+class ConversationResponse(BaseModel):
+    id:int
+    title:str |None =None
+    user_id:int
+
+    class Config:
+        from_attributes = True

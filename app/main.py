@@ -6,12 +6,13 @@ from app import models , schemas , crud
 
 from app.routers.user import router as user_router
 from app.routers.admin import router as admin_router
+from app.routers.chat import router as chat_router
 
 
 app = FastAPI()
 app.include_router(user_router)
 app.include_router(admin_router)
-
+app.include_router(chat_router)
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
