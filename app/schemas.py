@@ -1,5 +1,6 @@
-from pydantic import BaseModel ,EmailStr
+from pydantic import BaseModel ,EmailStr, Field
 from typing import Optional
+from datetime import datetime
 
 class UserBase(BaseModel):
     username:str
@@ -44,12 +45,32 @@ class ChangePassword(BaseModel):
     new_password:str
 
 class ConversationCreate(BaseModel):
-    title: str | None = None
+    title: str | None = Field(
+    default=None,
+    min_length=1,
+    max_length=100
+    )
 
 class ConversationResponse(BaseModel):
     id:int
     title:str |None =None
     user_id:int
+
+    class Config:
+        from_attributes = True
+
+class MessageCreate(BaseModel):
+    content: str = Field(
+        min_length=1,
+        max_length=5000
+    )
+
+
+class MessageResponse(BaseModel):
+    id: int
+    content: str
+    conversation_id: int
+    created_at: datetime
 
     class Config:
         from_attributes = True

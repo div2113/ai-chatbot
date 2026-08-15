@@ -1,6 +1,7 @@
-from sqlalchemy import Column ,Integer ,String ,Boolean ,ForeignKey
+from sqlalchemy import Column ,Integer ,String ,Boolean ,ForeignKey, DateTime
 from app.database import Base
 from sqlalchemy.orm import Session , relationship 
+from datetime import datetime
 
 class User(Base):
     __tablename__ ="users"
@@ -21,3 +22,18 @@ class Conversation(Base):
     title= Column(String, nullable=True)
     user_id=Column(Integer, ForeignKey("users.id"), nullable=False)
     user = relationship("User" ,back_populates="conversations")
+    messages = relationship("Message", back_populates="conversation", cascade="all , delete-orphan" )
+
+class Message(Base):
+    __tablename__ ="messages"
+
+    id = Column(Integer,primary_key=True , index=True)
+    content=Column(String , nullable=False)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+    conversation_id= Column(Integer, ForeignKey("conversations.id"), nullable=False)
+    conversation = relationship("Conversation" , back_populates="messages")
