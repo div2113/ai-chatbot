@@ -54,6 +54,7 @@ class ConversationCreate(BaseModel):
 class ConversationResponse(BaseModel):
     id:int
     title:str |None =None
+    summary: str | None = None
     user_id:int
 
     class Config:

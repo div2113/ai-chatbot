@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.services.llm_service import generate_response
+from app.services.llm_service import generate_response , build_chat_prompt , generate_summary
 from app import models, schemas
 from requests.exceptions import RequestException
 
@@ -25,6 +25,19 @@ def create_message(
     if conversation is None:
         return None
 
+     # Get previous messages
+    previous_messages = (
+        db.query(models.Message)
+        .filter(
+            models.Message.conversation_id == conversation_id
+        )
+        .order_by(models.Message.created_at.desc())
+        .limit(20)
+        .all()
+    )
+
+    previous_messages.reverse()
+
     user_message = models.Message(
         role ="user" ,
         content=message.content,
@@ -35,11 +48,19 @@ def create_message(
     db.commit()
     db.refresh(user_message)
 
-    try:
-        ai_response = generate_response(message.content)
-    except Exception:
-        raise
-    
+
+    # Add current message to history
+    previous_messages.append(user_message)
+
+    # Build prompt using conversation history
+    chat_prompt = build_chat_prompt(previous_messages , conversation.summary)
+
+    print("\n===== CHAT PROMPT =====")
+    print(chat_prompt)
+    print("=======================\n")
+
+    # Send history + current message to LLM
+    ai_response = generate_response(chat_prompt)
     assistant_message = models.Message(
         role="assistant",
         content=ai_response,
@@ -50,6 +71,31 @@ def create_message(
     db.commit()
     db.refresh(assistant_message)
 
+    # Check conversation message count
+    message_count = (
+        db.query(models.Message)
+        .filter(
+            models.Message.conversation_id == conversation_id
+        )
+        .count()
+    )
+
+    # Create/update summary when conversation gets long
+    if message_count > 20:
+
+        all_messages = (
+            db.query(models.Message)
+            .filter(
+                models.Message.conversation_id == conversation_id
+            )
+            .order_by(models.Message.created_at.asc())
+            .all()
+        )
+
+        conversation.summary = generate_summary(all_messages)
+
+        db.commit()
+        db.refresh(conversation)
 
     return {
         "user_message": user_message,

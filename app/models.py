@@ -20,6 +20,7 @@ class Conversation(Base):
 
     id= Column(Integer , primary_key=True, index=True)
     title= Column(String, nullable=True)
+    summary = Column(String , nullable=False)
     user_id=Column(Integer, ForeignKey("users.id"), nullable=False)
     user = relationship("User" ,back_populates="conversations")
     messages = relationship("Message", back_populates="conversation", cascade="all , delete-orphan" )
