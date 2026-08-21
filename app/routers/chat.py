@@ -113,7 +113,7 @@ def delete_my_conversation(
 # Create message
 @router.post(
     "/conversations/{conversation_id}/messages",
-    response_model=schemas.MessageResponse
+    response_model=schemas.ChatResponse
 )
 def create_message(
     conversation_id: int,
@@ -121,12 +121,33 @@ def create_message(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    new_message = crud.create_message(
-        db,
-        message,
-        conversation_id,
-        current_user.id
-    )
+    try:
+        new_message = crud.create_message(
+            db,
+            message,
+            conversation_id,
+            current_user.id
+        )
+
+    except Exception as e :
+        if str(e) == "Could not connect to Ollama":
+            raise HTTPException(
+                status_code=503,
+                detail="LLM service is currently unavailable"
+            )
+
+        if str(e) == "LLM request timed out":
+            raise HTTPException(
+                status_code=504,
+                detail="LLM request timed out"
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail="LLM request failed"
+        )
+
+
 
     if new_message is None:
         raise HTTPException(

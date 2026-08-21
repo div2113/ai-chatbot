@@ -68,9 +68,14 @@ class MessageCreate(BaseModel):
 
 class MessageResponse(BaseModel):
     id: int
+    role: str
     content: str
     conversation_id: int
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+class ChatResponse(BaseModel):
+    user_message : MessageResponse
+    assistant_message: MessageResponse

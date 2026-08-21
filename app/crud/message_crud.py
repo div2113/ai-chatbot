@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
-
+from app.services.llm_service import generate_response
 from app import models, schemas
+from requests.exceptions import RequestException
+
 
 
 # Create message
@@ -23,16 +25,36 @@ def create_message(
     if conversation is None:
         return None
 
-    new_message = models.Message(
+    user_message = models.Message(
+        role ="user" ,
         content=message.content,
         conversation_id=conversation_id
     )
 
-    db.add(new_message)
+    db.add(user_message)
     db.commit()
-    db.refresh(new_message)
+    db.refresh(user_message)
 
-    return new_message
+    try:
+        ai_response = generate_response(message.content)
+    except Exception:
+        raise
+    
+    assistant_message = models.Message(
+        role="assistant",
+        content=ai_response,
+        conversation_id=conversation_id
+    )
+
+    db.add(assistant_message)
+    db.commit()
+    db.refresh(assistant_message)
+
+
+    return {
+        "user_message": user_message,
+        "assistant_message": assistant_message
+    }
 
 
 # Get all messages in a conversation
